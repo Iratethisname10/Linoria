@@ -38,7 +38,7 @@ local mainGroup = Tabs.AutoFarm:AddLeftGroupbox('Main')
 ```lua
 AddLeftGroupbox('') -- left
 AddRightGroupbox('') -- right
-
+```
 
 ## Notifying the user
 ```lua
