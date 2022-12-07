@@ -31,13 +31,13 @@ local Tabs = {
 
 ## Creating a Group
 ```lua
-local mainGroup = Tabs.AutoFarm:AddLeftGroupbox('Main')
+local mainGroup = Tabs.tab:AddLeftGroupbox('Main')
 ```
 
 ## GroupBox Positions
 ```lua
-AddLeftGroupbox('') -- left
-AddRightGroupbox('') -- right
+:AddLeftGroupbox('') -- left
+:AddRightGroupbox('') -- right
 ```
 
 ## Notifying the user
@@ -47,112 +47,184 @@ Library:Notify("Notification")
 
 ## Creating a Button
 ```lua
-MenuGroup:AddButton('Unload', function() Library:Unload() end)
+mainGroup:AddButton('Unload', function() end)
 ```
 
 ## Creating a Toggle
 ```lua
-local Toggle = Tab:CreateToggle({
-	Name = "Toggle Example",
-	CurrentValue = false,
-	Flag = "Toggle1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-	Callback = function(Value)
-		-- The function that takes place when the toggle is pressed
-    		-- The variable (Value) is a boolean on whether the toggle is true or false
-	end,
+mainGroup:AddToggle('Toggle1', {
+    Text = 'Toggle',
+    Default = false,
+    Tooltip = 'hover text',
 })
 ```
-### Updating a Toggle
+### Toggle Function
 ```lua
-Toggle:Set(false)
+Toggles.Toggle1:OnChanged(function()
+    print('Toggle changed to:', Toggles.MyToggle.Value)
+end)
 ```
 
 ## Creating a Color Picker
-Coming Soon
+```lua
+mainGroup:AddLabel('Color'):AddColorPicker('ColorPicker', {
+    Default = Color3.new(0, 1, 0),
+    Title = 'Some color',
+})
+
+Options.ColorPicker:OnChanged(function()
+    print('Color changed!', Options.ColorPicker.Value)
+end)
+
+Options.ColorPicker:SetValueRGB(Color3.fromRGB(0, 255, 140))
+```
 
 
 ## Creating a Slider
 ```lua
-local Slider = Tab:CreateSlider({
-	Name = "Slider Example",
-	Range = {0, 100},
-	Increment = 10,
-	Suffix = "Bananas",
-	CurrentValue = 10,
-	Flag = "Slider1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-	Callback = function(Value)
-		-- The function that takes place when the slider changes
-    		-- The variable (Value) is a number which correlates to the value the slider is currently at
-	end,
+mainGroup:AddSlider('MySlider', {
+    Text = 'Slider!',
+    Default = 0,
+    Min = 0,
+    Max = 5,
+    Rounding = 1,
+
+    Compact = false, -- If set to true, then it will hide the label
 })
 ```
-### Updating a Slider
+### Slider Function
 ```lua
-Slider:Set(10) -- The new slider integer value
+Options.MySlider:OnChanged(function()
+    print('MySlider was changed! New value:', Options.MySlider.Value)
+end)
 ```
 
 ## Creating a Label
 ```lua
-local Label = Tab:CreateLabel("Label Example")
-```
-### Updating a Label
-```lua
-Label:Set("Label Example")
+mainGroup:AddLabel('This is a label')
 ```
 
-## Creating a Paragraph
+## Creating a Divider
 ```lua
-local Paragraph = Tab:CreateParagraph({Title = "Paragraph Example", Content = "Paragraph Example"})
-```
-### Updating a Paragraph
-```lua
-Paragraph:Set({Title = "Paragraph Example", Content = "Paragraph Example"})
+mainGroup:AddDivider()
 ```
 
 ## Creating an Adaptive Input (TextBox)
 ```lua
-local Input = Tab:CreateInput({
-	Name = "Input Example",
-	PlaceholderText = "Input Placeholder",
-	RemoveTextAfterFocusLost = false,
-	Callback = function(Text)
-		-- The function that takes place when the input is changed
-    		-- The variable (Text) is a string for the value in the text box
-	end,
+mainGroup:AddInput('MyTextbox', {
+    Default = 'My textbox!',
+    Numeric = false, -- true / false, only allows numbers
+    Finished = false, -- true / false, only calls callback when you press enter
+
+    Text = 'Textbox',
+    Tooltip = 'Hover text', -- Information shown when you hover over the textbox
+
+    Placeholder = 'Placeholder text', -- placeholder text when the box is empty
+    -- MaxLength is also an option which is the max length of the text
 })
 ```
 
-
+## Input Function
+```lua
+Options.MyTextbox:OnChanged(function()
+    print('Text updated. New text:', Options.MyTextbox.Value)
+end)
+```
 
 ## Creating a Keybind
 ```lua
-local Keybind = Tab:CreateKeybind({
-	Name = "Keybind Example",
-	CurrentKeybind = "Q",
-	HoldToInteract = false,
-	Flag = "Keybind1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-	Callback = function(Keybind)
-		-- The function that takes place when the keybind is pressed
-    		-- The variable (Keybind) is a boolean for whether the keybind is being held or not (HoldToInteract needs to be true)
-	end,
+mainGroup:AddLabel('Keybind'):AddKeyPicker('KeyPicker', {
+    -- SyncToggleState only works with toggles. 
+    -- It allows you to make a keybind which has its state synced with its parent toggle
+
+    -- Example: Keybind which you use to toggle flyhack, etc.
+    -- Changing the toggle disables the keybind state and toggling the keybind switches the toggle state
+
+    Default = 'MB2', -- String as the name of the keybind (MB1, MB2 for mouse buttons)  
+    SyncToggleState = false, 
+
+
+    -- You can define custom Modes but I have never had a use for it.
+    Mode = 'Toggle', -- Modes: Always, Toggle, Hold
+
+    Text = 'Auto lockpick safes', -- Text to display in the keybind menu
+    NoUI = false, -- Set to true if you want to hide from the Keybind menu,
 })
+
+-- OnClick is only fired when you press the keybind and the mode is Toggle
+-- Otherwise, you will have to use Keybind:GetState()
+Options.KeyPicker:OnClick(function()
+    print('Keybind clicked!', Options.KeyPicker.Value)
+end)
+
+task.spawn(function()
+    while true do
+        wait(1)
+
+        -- example for checking if a keybind is being pressed
+        local state = Options.KeyPicker:GetState()
+        if state then
+            print('KeyPicker is being held down')
+        end
+
+        if Library.Unloaded then break end
+    end
+end)
+
+Options.KeyPicker:SetValue({ 'MB2', 'Toggle' }) -- Sets keybind to MB2, mode to Hold
 ```
-### Updating a Keybind
-```lua
-Keybind:Set("RightCtrl") -- Keybind (string)
-```
+-- i have no idea how to use keybinds or anything obt them lol, i just copied this from the original thing
 
 ## Creating a Dropdown menu
 ```lua
-local Dropdown = Tab:CreateDropdown({
-	Name = "Dropdown Example",
-	Options = {"Option 1","Option 2"},
-	CurrentOption = "Option 1",
-	Flag = "Dropdown1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-	Callback = function(Option)
-	  	  -- The function that takes place when the selected option is changed
-    	  -- The variable (Option) is a string for the value that the dropdown was changed to
-	end,
+mainGroup:AddDropdown('MyDropdown', {
+    Values = { 'This', 'is', 'a', 'dropdown' },
+    Default = 1, -- number index of the value / string
+
+    Text = 'A dropdown',
+    Tooltip = 'Hover text', -- Information shown when you hover over the textbox
+})
+
+```
+
+## Dropdown menu Fucntion
+```lua
+Options.MyDropdown:OnChanged(function()
+    print('Dropdown got changed. New value:', Options.MyDropdown.Value)
+end)
+
+Options.MyDropdown:SetValue('This')
+```
+
+## Creating a Multi Dropdown menu
+```lua
+mainGroup:AddDropdown('MyMultiDropdown', {
+    -- Default is the numeric index (e.g. "This" would be 1 since it if first in the values list)
+    -- Default also accepts a string as well
+
+    -- Currently you can not set multiple values with a dropdown
+
+    Values = { 'This', 'is', 'a', 'dropdown' },
+    Default = 1, 
+    Multi = true, -- true / false, allows multiple choices to be selected
+
+    Text = 'A dropdown',
+    Tooltip = 'Hover Text', -- Information shown when you hover over the textbox
+})
+```
+
+## Multi Dropdown menu Fucntion
+```lua
+Options.MyMultiDropdown:OnChanged(function()
+    print('Multi dropdown got changed:')
+    for key, value in next, Options.MyMultiDropdown.Value do
+        print(key, value) -- should print something like This, true
+    end
+end)
+
+Options.MyMultiDropdown:SetValue({
+    This = true,
+    is = true,
 })
 ```
 
